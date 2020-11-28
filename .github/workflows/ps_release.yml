@@ -4,36 +4,38 @@ on:
   push:
     tags:
       - "*"
-
 env:
-  MODULE_NAME: developer_tools
+  ORGANISATION_NAME: friends-of-presta
 
 jobs:
   ps_release:
     runs-on: "ubuntu-latest"
 
     steps:
+      - name: "Setup zipname. Exports $MODULE_NAME, $VERSION & $ZIP_FILE"
+        run: |
+          MODULE_NAME=${GITHUB_REPOSITORY#$ORGANISATION_NAME/}
+          echo "MODULE_NAME=${MODULE_NAME}" >> $GITHUB_ENV
+          REF='${{ github.ref }}'
+          VERSION=${REF#refs/*/}
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "ZIP_FILE=${MODULE_NAME}_${VERSION}.zip" >> $GITHUB_ENV
+
       - name: "Checkout source code"
         uses: "actions/checkout@master"
         with:
           lfs: true
 
-      - name: Set env
-        run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/*/}
-
-      - name: create folder
-        run: mkdir newdir
-
-      - name: move Files
-        run: ls | grep -v newdir | xargs -I{} mv {} newdir
-
-      - name: rename folder
-        run: mv newdir ${{env.MODULE_NAME}}
+      - name: "Prepare files"
+        run: |
+            mkdir newdir
+            ls | grep -v newdir | xargs -I{} mv {} newdir
+            mv newdir ${{ env.MODULE_NAME }}
 
       - name: Archive Release
         uses: thedoctor0/zip-release@master
         with:
-          filename: ${{env.MODULE_NAME}}_${{env.RELEASE_VERSION}}.zip
+          filename: '${{ env.ZIP_FILE }}'
           exclusions: '*.git* README.md config_de.xml config.xml'
           type: 'zip'
 
@@ -42,5 +44,5 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
-            ${{env.MODULE_NAME}}_${{env.RELEASE_VERSION}}.zip
+            ${{ env.ZIP_FILE }}
         id: "automatic_releases"
