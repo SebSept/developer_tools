@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: "Setup zipname. Exports $MODULE_NAME, $VERSION & $ZIP_FILE"
         run: |
+          echo repo : ${GITHUB_REPOSITORY}
+          echo orga : ${ORGANISATION_NAME}
           MODULE_NAME=${GITHUB_REPOSITORY#$ORGANISATION_NAME/}
           echo "MODULE_NAME=${MODULE_NAME}" >> $GITHUB_ENV
           REF='${{ github.ref }}'
